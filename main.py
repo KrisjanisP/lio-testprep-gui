@@ -5,6 +5,9 @@ from PySide6.QtGui import *
 import appdirs
 import json
 from reload_label import *
+from status_tab import *
+from task_yaml_tab import *
+from tests_toml_tab import *
 
 
 def get_config_path():
@@ -59,55 +62,6 @@ class MainWindow(QMainWindow):
         save_project_directory(dir_path)
 
 
-class StatusTab(QWidget):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.mainWindow = parent
-        layout = QVBoxLayout()
-        self.projectStatusLabel = QLabel("No project selected")
-        self.selectProjectButton = QPushButton("Select Project Directory")
-        self.selectProjectButton.clicked.connect(self.select_project_directory)
-
-        layout.addWidget(self.projectStatusLabel)
-        layout.addWidget(self.selectProjectButton)
-        self.setLayout(layout)
-
-    def update_selected_directory(self, dir_path):
-        self.mainWindow.project_directory = dir_path
-        self.projectStatusLabel.setText(f"Project Directory: {dir_path}")
-
-    def select_project_directory(self):
-        dir_path = QFileDialog.getExistingDirectory(self, "Select Project Directory")
-        if dir_path:
-            self.update_selected_directory(dir_path)
-
-
-class TaskYamlViewerTab(QWidget):
-    def __init__(self, parent):
-        super().__init__()
-        self.mainWindow = parent
-        self.layout = QVBoxLayout()
-
-        self.reloadLabelRow = ReloadLabelRow()
-
-        self.taskContent = QTextEdit()
-        self.taskContent.setStyleSheet("background-color: #f0f0f0;")
-        self.syntaxHighlighter = YamlSyntaxHighlighter(self.taskContent.document())
-
-        self.layout.addLayout(self.reloadLabelRow)
-        self.layout.addWidget(self.taskContent)
-        self.setLayout(self.layout)
-
-    def load_task_yaml(self):
-        project_directory = self.mainWindow.project_directory
-        task_file_path = os.path.join(project_directory, "task.yaml")
-        if os.path.exists(task_file_path):
-            with open(task_file_path) as file:
-                self.taskContent.setText(file.read())
-                self.reloadLabelRow.update_reload_label()
-        else:
-            self.taskContent.setText("task.yaml not found in the selected directory.")
-
 class FileAdditionTab(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
@@ -131,37 +85,6 @@ class FileAdditionTab(QWidget):
             self.table.insertRow(row_position)
             self.table.setItem(row_position, 0, QTableWidgetItem(os.path.basename(file_path)))
             self.table.setItem(row_position, 1, QTableWidgetItem(str(file_size)))
-
-class YamlSyntaxHighlighter(QSyntaxHighlighter):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        
-    def highlightBlock(self, text):
-        pass
-
-class TestsTomlTab(QWidget):
-    def __init__(self, mainWindow):
-        super().__init__()
-        self.mainWindow = mainWindow
-        self.layout = QVBoxLayout()
-        self.content = QTextEdit()
-        self.content.setReadOnly(True)
-        self.content.setStyleSheet("background-color: #f0f0f0;")  # Optional: Set background color
-        self.reloadLabelRow = ReloadLabelRow()
-        self.layout.addLayout(self.reloadLabelRow)
-        self.layout.addWidget(self.content)
-        self.setLayout(self.layout)
-
-    def load_tests_toml(self):
-        project_directory = self.mainWindow.project_directory
-        tests_toml_path = os.path.join(project_directory, "riki", "data", "tests.toml")
-        if os.path.exists(tests_toml_path):
-            with open(tests_toml_path, "r") as file:
-                self.content.setText(file.read())
-                self.reloadLabelRow.update_reload_label()
-        else:
-            self.content.setText("tests.toml not found in the specified directory.")
-
 
 if __name__ == "__main__":
     app = QApplication([])

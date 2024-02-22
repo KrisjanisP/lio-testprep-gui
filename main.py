@@ -1,9 +1,11 @@
 import os
 import yaml
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog, QTextEdit, QTableWidget, QTableWidgetItem, QHBoxLayout
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
 import appdirs
 import json
+from datetime import datetime
 
 
 def get_config_path():
@@ -30,7 +32,7 @@ def load_project_directory():
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Project Manager")
+        self.setWindowTitle("LIO Test Preparation GUI")
         self.resize(800, 600)
 
         self.tabs = QTabWidget()
@@ -75,11 +77,22 @@ class StatusTab(QWidget):
 
 class TaskYamlViewerTab(QWidget):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__()
         self.mainWindow = parent
         self.layout = QVBoxLayout()
+
+        self.reloadLayout = QHBoxLayout()
+        
+        self.reloadLayout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+
+        self.lastReloadedLabel = QLabel("Last reloaded: Never")  # Initial message
+        self.reloadLayout.addWidget(self.lastReloadedLabel)
+
         self.taskContent = QTextEdit()
-        self.taskContent.setReadOnly(True)
+        self.taskContent.setStyleSheet("background-color: #f0f0f0;")
+        self.syntaxHighlighter = YamlSyntaxHighlighter(self.taskContent.document())
+
+        self.layout.addLayout(self.reloadLayout)
         self.layout.addWidget(self.taskContent)
         self.setLayout(self.layout)
 
@@ -89,6 +102,10 @@ class TaskYamlViewerTab(QWidget):
         if os.path.exists(task_file_path):
             with open(task_file_path) as file:
                 self.taskContent.setText(file.read())
+                # Update the last reloaded label with current date and time
+                now = datetime.now()
+                lastReloadedText = now.strftime("Last reloaded: %Y-%m-%d %H:%M:%S")
+                self.lastReloadedLabel.setText(lastReloadedText)
         else:
             self.taskContent.setText("task.yaml not found in the selected directory.")
 
@@ -115,6 +132,13 @@ class FileAdditionTab(QWidget):
             self.table.insertRow(row_position)
             self.table.setItem(row_position, 0, QTableWidgetItem(os.path.basename(file_path)))
             self.table.setItem(row_position, 1, QTableWidgetItem(str(file_size)))
+
+class YamlSyntaxHighlighter(QSyntaxHighlighter):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+    def highlightBlock(self, text):
+        pass
 
 if __name__ == "__main__":
     app = QApplication([])

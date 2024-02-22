@@ -52,26 +52,28 @@ class MainWindow(QMainWindow):
         self.solutionsTab = SolutionsTab(self)
         self.tabs.addTab(self.solutionsTab, "solutions")
 
-        self.project_directory = load_project_directory()
-        if self.project_directory:
-            self.update_project_directory(self.project_directory)
+        self.task_dir = load_project_directory()
+        if self.task_dir:
+            self.update_task_dir(self.task_dir)
 
-    def update_project_directory(self, dir_path):
-        self.project_directory = dir_path
-        self.statusTab.update_selected_directory(dir_path)
+    def update_task_dir(self, dir_path):
+        self.task_dir = dir_path
+        self.statusTab.update_task_dir(dir_path)
+        self.solutionsTab.update_task_dir(dir_path)
         self.taskYamlViewerTab.load_task_yaml()
         self.testsTomlTab.load_tests_toml()
         save_project_directory(dir_path)
 
 
 class SolutionsTab(QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent:MainWindow):
         super().__init__(parent)
         self.mainWindow = parent
+        self.task_directory = ""
 
         layout = QVBoxLayout()
         self.addButton = QPushButton("Add File")
-        self.addButton.clicked.connect(self.add_file)
+        self.addButton.clicked.connect(self.add_solution)
         layout.addWidget(self.addButton)
 
         self.tabs = QTabWidget()
@@ -92,10 +94,12 @@ class SolutionsTab(QWidget):
         
         layout.addWidget(self.tabs)
         self.setLayout(layout)
-        
 
-    def add_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select file to add")
+    def update_task_dir(self, dir_path):
+        self.task_directory = dir_path
+
+    def add_solution(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Select solution to add")
         if file_path:
             file_info = os.stat(file_path)
             file_size = file_info.st_size // 1024

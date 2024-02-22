@@ -25,4 +25,4 @@ class TestsTomlTab(QWidget):
                 self.content.setText(file.read())
                 self.reloadLabelRow.update_reload_label()
         else:
-            self.content.setText("tests.toml not found in the specified directory.")
+            self.content.setText(f"tests.toml not found at {tests_toml_path}.")

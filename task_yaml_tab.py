@@ -29,4 +29,4 @@ class TaskYamlViewerTab(QWidget):
                 self.taskContent.setText(file.read())
                 self.reloadLabelRow.update_reload_label()
         else:
-            self.taskContent.setText("task.yaml not found in the selected directory.")
+            self.taskContent.setText(f"task.yaml not found at {task_file_path}.")

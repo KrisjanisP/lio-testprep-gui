@@ -2,6 +2,30 @@ import os
 import yaml
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QWidget, QVBoxLayout, QLabel, QPushButton, QFileDialog, QTextEdit, QTableWidget, QTableWidgetItem, QHBoxLayout
 from PySide6.QtCore import Qt
+import appdirs
+import json
+
+
+def get_config_path():
+    # Get the appropriate user config directory for the application
+    config_dir = appdirs.user_config_dir("testprep-gui", "Krišjānis Petručeņa")
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)  # Create the directory if it doesn't exist
+    return os.path.join(config_dir, "config.json")
+
+def save_project_directory(project_directory):
+    config_path = get_config_path()
+    config = {'project_directory': project_directory}
+    with open(config_path, 'w') as f:
+        json.dump(config, f)
+
+def load_project_directory():
+    config_path = get_config_path()
+    if os.path.exists(config_path):
+        with open(config_path) as f:
+            config = json.load(f)
+            return config.get('project_directory', '')
+    return ''
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -13,14 +37,17 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
 
         self.statusTab = StatusTab(self)
-        self.taskViewerTab = TaskYamlViewerTab(self)
+        self.taskYamlViewerTab = TaskYamlViewerTab(self)
         self.fileAdditionTab = FileAdditionTab(self)
 
         self.tabs.addTab(self.statusTab, "Status")
-        self.tabs.addTab(self.taskViewerTab, "task.yaml")
+        self.tabs.addTab(self.taskYamlViewerTab, "task.yaml")
         self.tabs.addTab(self.fileAdditionTab, "Add Files")
 
-        self.project_directory = ""
+        self.project_directory = load_project_directory()
+        if self.project_directory:
+            self.statusTab.update_selected_directory(self.project_directory)
+
 
 class StatusTab(QWidget):
     def __init__(self, parent):
@@ -35,12 +62,16 @@ class StatusTab(QWidget):
         layout.addWidget(self.selectProjectButton)
         self.setLayout(layout)
 
+    def update_selected_directory(self, dir_path):
+        self.mainWindow.project_directory = dir_path
+        self.projectStatusLabel.setText(f"Project Directory: {dir_path}")
+        save_project_directory(dir_path)
+        self.mainWindow.taskYamlViewerTab.load_task_yaml()
+
     def select_project_directory(self):
         dir_path = QFileDialog.getExistingDirectory(self, "Select Project Directory")
         if dir_path:
-            self.mainWindow.project_directory = dir_path
-            self.projectStatusLabel.setText(f"Project Directory: {dir_path}")
-            self.mainWindow.taskViewerTab.load_task_yaml()
+            self.update_selected_directory(dir_path)
 
 class TaskYamlViewerTab(QWidget):
     def __init__(self, parent):

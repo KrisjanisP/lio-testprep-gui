@@ -41,14 +41,16 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
 
         self.statusTab = StatusTab(self)
-        self.taskYamlViewerTab = TaskYamlViewerTab(self)
-        self.fileAdditionTab = FileAdditionTab(self)
-        self.testsTomlTab = TestsTomlTab(self)
+        self.tabs.addTab(self.statusTab, "status")
 
-        self.tabs.addTab(self.statusTab, "Status")
+        self.taskYamlViewerTab = TaskYamlViewerTab(self)
         self.tabs.addTab(self.taskYamlViewerTab, "task.yaml")
+
+        self.testsTomlTab = TestsTomlTab(self)
         self.tabs.addTab(self.testsTomlTab, "tests.toml")
-        self.tabs.addTab(self.fileAdditionTab, "Add Files")
+
+        self.solutionsTab = SolutionsTab(self)
+        self.tabs.addTab(self.solutionsTab, "solutions")
 
         self.project_directory = load_project_directory()
         if self.project_directory:
@@ -62,19 +64,35 @@ class MainWindow(QMainWindow):
         save_project_directory(dir_path)
 
 
-class FileAdditionTab(QWidget):
+class SolutionsTab(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.mainWindow = parent
-        layout = QHBoxLayout()
-        self.table = QTableWidget(0, 2)
-        self.table.setHorizontalHeaderLabels(["File Name", "File Size (KB)"])
+
+        layout = QVBoxLayout()
         self.addButton = QPushButton("Add File")
         self.addButton.clicked.connect(self.add_file)
-
-        layout.addWidget(self.table)
         layout.addWidget(self.addButton)
+
+        self.tabs = QTabWidget()
+        self.tabs1table = QTableWidget(0, 7)
+        self.tabs1table.setHorizontalHeaderLabels(["test", "group", "time", "memory", "status", "input", "output"])
+        self.tabs.addTab(self.tabs1table, "tab1")
+
+        for _ in range(100):
+            row_position = self.tabs1table.rowCount()
+            self.tabs1table.insertRow(row_position)
+            self.tabs1table.setItem(row_position, 0, QTableWidgetItem("test1"))
+            self.tabs1table.setItem(row_position, 1, QTableWidgetItem("group1"))
+            self.tabs1table.setItem(row_position, 2, QTableWidgetItem("1s"))
+            self.tabs1table.setItem(row_position, 3, QTableWidgetItem("256M"))
+            self.tabs1table.setItem(row_position, 4, QTableWidgetItem("OK"))
+            self.tabs1table.setItem(row_position, 5, QTableWidgetItem("input1"))
+            self.tabs1table.setItem(row_position, 6, QTableWidgetItem("output1"))
+        
+        layout.addWidget(self.tabs)
         self.setLayout(layout)
+        
 
     def add_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Select file to add")

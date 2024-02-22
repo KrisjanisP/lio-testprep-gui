@@ -41,14 +41,23 @@ class MainWindow(QMainWindow):
         self.statusTab = StatusTab(self)
         self.taskYamlViewerTab = TaskYamlViewerTab(self)
         self.fileAdditionTab = FileAdditionTab(self)
+        self.testsTomlTab = TestsTomlTab(self)
 
         self.tabs.addTab(self.statusTab, "Status")
         self.tabs.addTab(self.taskYamlViewerTab, "task.yaml")
+        self.tabs.addTab(self.testsTomlTab, "tests.toml")
         self.tabs.addTab(self.fileAdditionTab, "Add Files")
 
         self.project_directory = load_project_directory()
         if self.project_directory:
-            self.statusTab.update_selected_directory(self.project_directory)
+            self.update_project_directory(self.project_directory)
+
+    def update_project_directory(self, dir_path):
+        self.project_directory = dir_path
+        self.statusTab.update_selected_directory(dir_path)
+        self.taskYamlViewerTab.load_task_yaml()
+        self.testsTomlTab.load_tests_toml()
+        save_project_directory(dir_path)
 
 
 class StatusTab(QWidget):
@@ -67,13 +76,30 @@ class StatusTab(QWidget):
     def update_selected_directory(self, dir_path):
         self.mainWindow.project_directory = dir_path
         self.projectStatusLabel.setText(f"Project Directory: {dir_path}")
-        save_project_directory(dir_path)
-        self.mainWindow.taskYamlViewerTab.load_task_yaml()
 
     def select_project_directory(self):
         dir_path = QFileDialog.getExistingDirectory(self, "Select Project Directory")
         if dir_path:
             self.update_selected_directory(dir_path)
+
+class ReloadLabel(QLabel):
+    def __init__(self):
+        super().__init__()
+        self.setText("Last reloaded: Never")
+
+    def update_reload_label(self):
+        now = datetime.now()
+        lastReloadedText = now.strftime("Last reloaded: %Y-%m-%d %H:%M:%S")
+        self.setText(lastReloadedText)
+    
+class ReloadLabelRow(QHBoxLayout):
+    def __init__(self):
+        super().__init__()
+        self.reloadLabel = ReloadLabel()
+        self.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.addWidget(self.reloadLabel)
+    def update_reload_label(self):
+        self.reloadLabel.update_reload_label()
 
 class TaskYamlViewerTab(QWidget):
     def __init__(self, parent):
@@ -81,18 +107,13 @@ class TaskYamlViewerTab(QWidget):
         self.mainWindow = parent
         self.layout = QVBoxLayout()
 
-        self.reloadLayout = QHBoxLayout()
-        
-        self.reloadLayout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-
-        self.lastReloadedLabel = QLabel("Last reloaded: Never")  # Initial message
-        self.reloadLayout.addWidget(self.lastReloadedLabel)
+        self.reloadLabelRow = ReloadLabelRow()
 
         self.taskContent = QTextEdit()
         self.taskContent.setStyleSheet("background-color: #f0f0f0;")
         self.syntaxHighlighter = YamlSyntaxHighlighter(self.taskContent.document())
 
-        self.layout.addLayout(self.reloadLayout)
+        self.layout.addLayout(self.reloadLabelRow)
         self.layout.addWidget(self.taskContent)
         self.setLayout(self.layout)
 
@@ -102,10 +123,7 @@ class TaskYamlViewerTab(QWidget):
         if os.path.exists(task_file_path):
             with open(task_file_path) as file:
                 self.taskContent.setText(file.read())
-                # Update the last reloaded label with current date and time
-                now = datetime.now()
-                lastReloadedText = now.strftime("Last reloaded: %Y-%m-%d %H:%M:%S")
-                self.lastReloadedLabel.setText(lastReloadedText)
+                self.reloadLabelRow.update_reload_label()
         else:
             self.taskContent.setText("task.yaml not found in the selected directory.")
 
@@ -139,6 +157,30 @@ class YamlSyntaxHighlighter(QSyntaxHighlighter):
         
     def highlightBlock(self, text):
         pass
+
+class TestsTomlTab(QWidget):
+    def __init__(self, mainWindow):
+        super().__init__()
+        self.mainWindow = mainWindow
+        self.layout = QVBoxLayout()
+        self.content = QTextEdit()
+        self.content.setReadOnly(True)
+        self.content.setStyleSheet("background-color: #f0f0f0;")  # Optional: Set background color
+        self.reloadLabelRow = ReloadLabelRow()
+        self.layout.addLayout(self.reloadLabelRow)
+        self.layout.addWidget(self.content)
+        self.setLayout(self.layout)
+
+    def load_tests_toml(self):
+        project_directory = self.mainWindow.project_directory
+        tests_toml_path = os.path.join(project_directory, "riki", "data", "tests.toml")
+        if os.path.exists(tests_toml_path):
+            with open(tests_toml_path, "r") as file:
+                self.content.setText(file.read())
+                self.reloadLabelRow.update_reload_label()
+        else:
+            self.content.setText("tests.toml not found in the specified directory.")
+
 
 if __name__ == "__main__":
     app = QApplication([])

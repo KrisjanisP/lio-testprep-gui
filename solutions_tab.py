@@ -54,15 +54,25 @@ class SolutionsTab(QWidget):
         statefulness.save_task_dir_solutions(self.task_directory, self.solution_paths)
         self.refresh_tabs()
 
+    def make_remove_button_handler(self, path):
+        def handler():
+            reply = QMessageBox.question(self, 'Confirm Removal', f"Are you sure you want to remove the solution: {os.path.basename(path)}?",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.remove_solution_path(path)
+        return handler
+
     def refresh_tabs(self):
         paths = self.solution_paths
         self.tabs.clear()
-        for path in paths:
+        for i in range(len(paths)):
+            path = paths[i]
             tab = QWidget()
             layout = QHBoxLayout()
             full_path_label = QLabel("Path: "+os.path.abspath(path))
             remove_button = QPushButton("Remove")
-            remove_button.clicked.connect(lambda: self.remove_solution_path([path][0]))
+            handler = self.make_remove_button_handler(path)
+            remove_button.clicked.connect(handler)
             layout.addWidget(full_path_label)
             layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
             layout.addWidget(remove_button)

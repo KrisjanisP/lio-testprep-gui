@@ -32,14 +32,20 @@ def load_last_task_dir():
 
 def save_task_dir_solutions(task_dir, sol_paths):
     config = load_config()
+    if 'sol_paths' not in config:
+        config['sol_paths'] = {}
     config['sol_paths'][task_dir] = sol_paths
     save_config(config)
 
-def load_last_task_dir_solution_paths(task_dir):
+def load_task_dir_solutions(task_dir):
     return load_config().get('sol_paths', {}).get(task_dir, [])
 
 def save_sol_test_results(task_dir, sol_code_sha256, results):
     config = load_config()
+    if 'sol_test_results' not in config:
+        config['sol_test_results'] = {}
+    if task_dir not in config['sol_test_results']:
+        config['sol_test_results'][task_dir] = {}
     config['sol_test_results'][task_dir][sol_code_sha256] = results
     save_config(config)
 

@@ -2,8 +2,6 @@ import os
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-import appdirs
-import json
 from reload_label import *
 from status_tab import *
 from task_yaml_tab import *
@@ -11,8 +9,7 @@ from tests_toml_tab import *
 from solutions_tab import *
 from tests_zip_tab import *
 import zipfile
-from statefulness import *
-
+import statefulness
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -35,10 +32,10 @@ class MainWindow(QMainWindow):
         self.testsZipTab = TestsZipTab()
         self.tabs.addTab(self.testsZipTab, "tests.zip")
 
-        self.solutionsTab = SolutionsTab(self)
+        self.solutionsTab = SolutionsTab()
         self.tabs.addTab(self.solutionsTab, "solutions")
 
-        self.task_dir = load_last_task_dir()
+        self.task_dir = statefulness.load_last_task_dir()
         if self.task_dir:
             self.update_task_dir(self.task_dir)
 
@@ -52,7 +49,7 @@ class MainWindow(QMainWindow):
         self.testsZipTab.update_task_dir(dir_path)
         self.testsZipTab.load_tests_zip()
 
-        save_task_dir(dir_path)
+        statefulness.save_task_dir(dir_path)
     
     def load_tests_from_zip(self, zip_path):
         if not os.path.exists(zip_path):

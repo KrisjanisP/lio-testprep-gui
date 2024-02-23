@@ -14,8 +14,8 @@ class TaskYamlViewerTab(QWidget):
         self.reloadLabelRow = ReloadLabelRow()
 
         self.taskContent = QTextEdit()
-        self.taskContent.setStyleSheet("background-color: #f0f0f0;")
-        # self.syntaxHighlighter = YamlSyntaxHighlighter(self.taskContent.document())
+        self.taskContent.setReadOnly(True)
+        self.taskContent.setFont(QFont("Courier New", 12))
 
         self.layout.addLayout(self.reloadLabelRow)
         self.layout.addWidget(self.taskContent)

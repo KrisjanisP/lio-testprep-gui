@@ -41,8 +41,10 @@ class MainWindow(QMainWindow):
 
     def update_task_dir(self, dir_path):
         self.task_dir = dir_path
+
         self.statusTab.update_task_dir(dir_path)
         self.solutionsTab.update_task_dir(dir_path)
+
         self.taskYamlViewerTab.load_task_yaml()
         self.testsTomlTab.load_tests_toml()
 

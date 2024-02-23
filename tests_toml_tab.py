@@ -11,7 +11,7 @@ class TestsTomlTab(QWidget):
         self.layout = QVBoxLayout()
         self.content = QTextEdit()
         self.content.setReadOnly(True)
-        self.content.setStyleSheet("background-color: #f0f0f0;")
+        self.content.setFont(QFont("Courier New", 12))
         self.reloadLabelRow = ReloadLabelRow()
         self.layout.addLayout(self.reloadLabelRow)
         self.layout.addWidget(self.content)

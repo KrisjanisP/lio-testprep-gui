@@ -8,6 +8,9 @@ from reload_label import *
 from status_tab import *
 from task_yaml_tab import *
 from tests_toml_tab import *
+from solutions_tab import *
+from tests_zip_tab import *
+import zipfile
 
 
 def get_config_path():
@@ -49,6 +52,9 @@ class MainWindow(QMainWindow):
         self.testsTomlTab = TestsTomlTab(self)
         self.tabs.addTab(self.testsTomlTab, "tests.toml")
 
+        self.testsZipTab = TestsZipTab()
+        self.tabs.addTab(self.testsZipTab, "tests.zip")
+
         self.solutionsTab = SolutionsTab(self)
         self.tabs.addTab(self.solutionsTab, "solutions")
 
@@ -62,51 +68,23 @@ class MainWindow(QMainWindow):
         self.solutionsTab.update_task_dir(dir_path)
         self.taskYamlViewerTab.load_task_yaml()
         self.testsTomlTab.load_tests_toml()
+
+        self.testsZipTab.update_task_dir(dir_path)
+        self.testsZipTab.load_tests_zip()
+
         save_project_directory(dir_path)
+    
+    def load_tests_from_zip(self, zip_path):
+        if not os.path.exists(zip_path):
+            QMessageBox.warning(self, "Error", "The specified zip file does not exist.")
+            return
+
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(self.task_dir)
+
+        self.solutionsTab.update_test_data(self.task_dir)
 
 
-class SolutionsTab(QWidget):
-    def __init__(self, parent:MainWindow):
-        super().__init__(parent)
-        self.mainWindow = parent
-        self.task_directory = ""
-
-        layout = QVBoxLayout()
-        self.addButton = QPushButton("Add File")
-        self.addButton.clicked.connect(self.add_solution)
-        layout.addWidget(self.addButton)
-
-        self.tabs = QTabWidget()
-        self.tabs1table = QTableWidget(0, 7)
-        self.tabs1table.setHorizontalHeaderLabels(["test", "group", "time", "memory", "status", "input", "output"])
-        self.tabs.addTab(self.tabs1table, "tab1")
-
-        for _ in range(100):
-            row_position = self.tabs1table.rowCount()
-            self.tabs1table.insertRow(row_position)
-            self.tabs1table.setItem(row_position, 0, QTableWidgetItem("test1"))
-            self.tabs1table.setItem(row_position, 1, QTableWidgetItem("group1"))
-            self.tabs1table.setItem(row_position, 2, QTableWidgetItem("1s"))
-            self.tabs1table.setItem(row_position, 3, QTableWidgetItem("256M"))
-            self.tabs1table.setItem(row_position, 4, QTableWidgetItem("OK"))
-            self.tabs1table.setItem(row_position, 5, QTableWidgetItem("input1"))
-            self.tabs1table.setItem(row_position, 6, QTableWidgetItem("output1"))
-        
-        layout.addWidget(self.tabs)
-        self.setLayout(layout)
-
-    def update_task_dir(self, dir_path):
-        self.task_directory = dir_path
-
-    def add_solution(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Select solution to add")
-        if file_path:
-            file_info = os.stat(file_path)
-            file_size = file_info.st_size // 1024
-            row_position = self.table.rowCount()
-            self.table.insertRow(row_position)
-            self.table.setItem(row_position, 0, QTableWidgetItem(os.path.basename(file_path)))
-            self.table.setItem(row_position, 1, QTableWidgetItem(str(file_size)))
 
 if __name__ == "__main__":
     app = QApplication([])

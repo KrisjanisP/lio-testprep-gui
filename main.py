@@ -3,11 +3,10 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from reload_label import *
-from status_tab import *
-from task_yaml_tab import *
-from tests_toml_tab import *
-from solutions_tab import *
-from tests_zip_tab import *
+from status_tab import StatusTab
+from task_yaml_tab import TaskYamlViewerTab
+from solutions_tab import SolutionsTab
+from generation_tab import GenerationTab
 import zipfile
 import statefulness
 
@@ -26,14 +25,12 @@ class MainWindow(QMainWindow):
         self.taskYamlViewerTab = TaskYamlViewerTab(self)
         self.tabs.addTab(self.taskYamlViewerTab, "task.yaml")
 
-        self.testsTomlTab = TestsTomlTab(self)
-        self.tabs.addTab(self.testsTomlTab, "tests.toml")
-
-        self.testsZipTab = TestsZipTab()
-        self.tabs.addTab(self.testsZipTab, "tests.zip")
+        self.generationTab = GenerationTab()
+        self.tabs.addTab(self.generationTab, "generation")
 
         self.solutionsTab = SolutionsTab()
         self.tabs.addTab(self.solutionsTab, "solutions")
+
 
         self.task_dir = statefulness.load_last_task_dir()
         if self.task_dir:
@@ -46,10 +43,8 @@ class MainWindow(QMainWindow):
         self.solutionsTab.update_task_dir(dir_path)
 
         self.taskYamlViewerTab.load_task_yaml()
-        self.testsTomlTab.load_tests_toml()
 
-        self.testsZipTab.update_task_dir(dir_path)
-        self.testsZipTab.load_tests_zip()
+        self.generationTab.update_task_dir(dir_path)
 
         statefulness.save_task_dir(dir_path)
     

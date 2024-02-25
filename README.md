@@ -13,3 +13,16 @@ result
   - cached for current project directory
 - remove solution file
 
+maybe group tests.toml, tests.zip together?
+
+you can then select:
+- param generator
+- testlib generator
+
+select subtasks for which to regenerate parameters
+
+tabs:
+- task
+- generation
+- validation
+- solutions

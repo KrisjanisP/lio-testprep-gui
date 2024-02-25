@@ -1,3 +1,4 @@
+import hashlib
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QTabWidget, QLabel
 import os
 import statefulness
@@ -54,6 +55,11 @@ class SolutionsTab(QWidget):
         statefulness.save_task_dir_solutions(self.task_directory, self.solution_paths)
         self.refresh_tabs()
 
+    def run_tests_button_handler(self, path):
+        def handler():
+            print(f"Running tests for {path}")
+        return handler
+
     def make_remove_button_handler(self, path):
         def handler():
             reply = QMessageBox.question(self, 'Confirm Removal', f"Are you sure you want to remove the solution: {os.path.basename(path)}?",
@@ -66,16 +72,39 @@ class SolutionsTab(QWidget):
         paths = self.solution_paths
         self.tabs.clear()
         for i in range(len(paths)):
+            if not os.path.exists(paths[i]):
+                print(f"Path {paths[i]} does not exist")
+                continue
             path = paths[i]
             tab = QWidget()
-            layout = QHBoxLayout()
+            tabLayout = QVBoxLayout()
+
+            labelsLayout = QHBoxLayout()
             full_path_label = QLabel("Path: "+os.path.abspath(path))
+            run_tests_button = QPushButton("Run tests")
             remove_button = QPushButton("Remove")
             handler = self.make_remove_button_handler(path)
             remove_button.clicked.connect(handler)
-            layout.addWidget(full_path_label)
-            layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-            layout.addWidget(remove_button)
 
-            tab.setLayout(layout)
+            labelsLayout.addWidget(full_path_label)
+            labelsLayout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+            labelsLayout.addWidget(run_tests_button)
+            labelsLayout.addWidget(remove_button)
+            tabLayout.addLayout(labelsLayout)
+
+            table = QTableWidget(0,7)
+            table.setHorizontalHeaderLabels(["Test","Time","Memory","Stdin","Stdout","Stderr","Verdict"])
+            table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+            with open(path, "r") as sol_file:
+                sol_file_content = sol_file.read()
+            sol_file_content_sha256 = hashlib.sha256(sol_file_content.encode()).hexdigest()
+            print(sol_file_content_sha256)
+            results = statefulness.load_sol_test_results(self.task_directory,sol_file_content_sha256)
+            for r in results:
+                print(r)
+
+            tabLayout.addWidget(table)
+    
+            tab.setLayout(tabLayout)
             self.tabs.addTab(tab, os.path.basename(path))

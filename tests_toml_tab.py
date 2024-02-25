@@ -1,7 +1,6 @@
 import os
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
-from PySide6.QtGui import *
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit
+from PySide6.QtGui import QFont
 from reload_label import ReloadLabelRow
 
 class TestsTomlTab(QWidget):

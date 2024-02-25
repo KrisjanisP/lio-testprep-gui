@@ -1,8 +1,6 @@
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from reload_label import *
-from task_yaml_tab import *
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit
+from PySide6.QtGui import QFont
+from reload_label import ReloadLabelRow
 import os
 
 class TaskYamlViewerTab(QWidget):

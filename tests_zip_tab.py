@@ -1,8 +1,6 @@
 import os
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from reload_label import ReloadLabel, ReloadLabelRow
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem, QHeaderView, QHBoxLayout, QSpacerItem, QSizePolicy
+from reload_label import ReloadLabel
 from zipfile import ZipFile
 
 class TestsZipTab(QWidget):

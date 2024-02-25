@@ -18,10 +18,16 @@ class GenerationTab(QWidget):
     def add_buttons_layout(self):
         button_layout = QHBoxLayout()
 
+        button_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+
+        self.select_param_gen_btn = QPushButton("Select param gen")
+        button_layout.addWidget(self.select_param_gen_btn)
+
+        self.select_testlib_gen_btn = QPushButton("Select testlib gen")
+        button_layout.addWidget(self.select_testlib_gen_btn)
+
         self.gen_params_btn = QPushButton("Gen params")
         button_layout.addWidget(self.gen_params_btn)
-
-        button_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         self.gen_tests_btn = QPushButton("Gen tests")
         button_layout.addWidget(self.gen_tests_btn)

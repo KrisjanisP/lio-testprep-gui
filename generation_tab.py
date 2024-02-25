@@ -61,3 +61,7 @@ def get_params_py_path(task_dir):
 
 def get_generator_cpp_path(task_dir):
     return os.path.join(task_dir, "riki", "generator.cpp")
+
+def generate_params(task_dir):
+    pass
+

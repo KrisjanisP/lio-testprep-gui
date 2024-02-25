@@ -1,8 +1,5 @@
 import os
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from reload_label import *
+from PySide6.QtWidgets import QMainWindow, QApplication, QTabWidget, QMessageBox
 from status_tab import StatusTab
 from task_yaml_tab import TaskYamlViewerTab
 from solutions_tab import SolutionsTab
@@ -19,10 +16,10 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
-        self.statusTab = StatusTab(self)
+        self.statusTab = StatusTab(lambda task_dir:self.update_task_dir(task_dir))
         self.tabs.addTab(self.statusTab, "status")
 
-        self.taskYamlViewerTab = TaskYamlViewerTab(self)
+        self.taskYamlViewerTab = TaskYamlViewerTab()
         self.tabs.addTab(self.taskYamlViewerTab, "task.yaml")
 
         self.generationTab = GenerationTab()
@@ -42,7 +39,7 @@ class MainWindow(QMainWindow):
         self.statusTab.update_task_dir(dir_path)
         self.solutionsTab.update_task_dir(dir_path)
 
-        self.taskYamlViewerTab.load_task_yaml()
+        self.taskYamlViewerTab.load_task_yaml(dir_path)
 
         self.generationTab.update_task_dir(dir_path)
 

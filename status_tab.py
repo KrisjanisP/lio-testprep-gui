@@ -1,13 +1,13 @@
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from main import MainWindow
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QFileDialog, QWidget
 
 class StatusTab(QWidget):
     
-    def __init__(self, parent:MainWindow):
-        super().__init__(parent)
-        self.mainWindow = parent
+    def __init__(self, set_task_dir_callback):
+        super().__init__()
+
+        self.set_task_dir_callback = set_task_dir_callback
+        self.task_dir = ""
+
         layout = QVBoxLayout()
         self.projectStatusLabel = QLabel("No task selected")
         self.selectProjectButton = QPushButton("Select task directory")
@@ -18,10 +18,11 @@ class StatusTab(QWidget):
         self.setLayout(layout)
 
     def update_task_dir(self, dir_path):
-        self.mainWindow.project_directory = dir_path
-        self.projectStatusLabel.setText(f"Task directory: {dir_path}")
+        self.task_dir = dir_path
+        self.projectStatusLabel.setText(f"Task directory: {self.task_dir}")
 
     def select_project_directory(self):
         dir_path = QFileDialog.getExistingDirectory(self, "Select Project Directory")
         if dir_path:
-            self.mainWindow.update_task_dir(dir_path)
+            self.set_task_dir_callback(dir_path)
+            self.update_task_dir(dir_path)

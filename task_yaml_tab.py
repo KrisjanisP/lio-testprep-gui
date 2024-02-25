@@ -6,9 +6,8 @@ from task_yaml_tab import *
 import os
 
 class TaskYamlViewerTab(QWidget):
-    def __init__(self, parent):
+    def __init__(self):
         super().__init__()
-        self.mainWindow = parent
         self.layout = QVBoxLayout()
 
         self.reloadLabelRow = ReloadLabelRow()
@@ -21,9 +20,8 @@ class TaskYamlViewerTab(QWidget):
         self.layout.addWidget(self.taskContent)
         self.setLayout(self.layout)
 
-    def load_task_yaml(self):
-        project_directory = self.mainWindow.project_directory
-        task_file_path = os.path.join(project_directory, "task.yaml")
+    def load_task_yaml(self, task_dir):
+        task_file_path = os.path.join(task_dir, "task.yaml")
         if os.path.exists(task_file_path):
             with open(task_file_path) as file:
                 self.taskContent.setText(file.read())

@@ -1,12 +1,6 @@
-import hashlib
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QFileDialog, QTabWidget, QLabel
-import os
-import statefulness
-from PySide6.QtWidgets import *
-from PySide6.QtCore import *
-from PySide6.QtGui import *
-from tests_toml_tab import *
-from tests_zip_tab import *
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTabWidget, QHBoxLayout, QSpacerItem, QSizePolicy
+from tests_toml_tab import TestsTomlTab
+from tests_zip_tab import TestsZipTab
 
 class GenerationTab(QWidget):
     def __init__(self):
@@ -14,19 +8,27 @@ class GenerationTab(QWidget):
         self.task_directory = ""
         self.solution_paths = []
 
-        main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout()
 
-        # Create a horizontal layout for the button
+        self.add_buttons_layout()
+        self.add_tabs()
+
+        self.setLayout(self.main_layout)
+
+    def add_buttons_layout(self):
         button_layout = QHBoxLayout()
 
-        # Add a spacer on the left side
+        self.gen_params_btn = QPushButton("Gen params")
+        button_layout.addWidget(self.gen_params_btn)
+
         button_layout.addItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
-        self.add_sol_btn = QPushButton("Add solution")
-        button_layout.addWidget(self.add_sol_btn)
+        self.gen_tests_btn = QPushButton("Gen tests")
+        button_layout.addWidget(self.gen_tests_btn)
 
-        main_layout.addLayout(button_layout)
-
+        self.main_layout.addLayout(button_layout)
+    
+    def add_tabs(self):
         self.tabs = QTabWidget()
 
         self.testsTomlTab = TestsTomlTab()
@@ -35,9 +37,7 @@ class GenerationTab(QWidget):
         self.testsZipTab = TestsZipTab()
         self.tabs.addTab(self.testsZipTab, "tests.zip")
 
-        main_layout.addWidget(self.tabs)
-
-        self.setLayout(main_layout)
+        self.main_layout.addWidget(self.tabs)
 
     def update_task_dir(self, dir_path):
         self.testsTomlTab.update_task_dir(dir_path)

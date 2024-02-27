@@ -21,7 +21,7 @@ class TestPreparationExportWorker(QObject):
         zip_path = os.path.join(self.task_dir, "testi", "tests.zip")
         gen_path = os.path.join(self.task_dir, "riki", "gen.cpp")
         sol_path = os.path.join(self.task_dir, "riki", "sol.cpp")
-    
+        
         self.output.emit("Exporting tests to zip...")
         try:
             with open(toml_path, "r") as f:
@@ -31,15 +31,19 @@ class TestPreparationExportWorker(QObject):
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as myzip:
                 tests = parsed_toml["tests"]
                 for i, test_toml in enumerate(tests):
-                    print(f"Exporting test {i + 1} of {len(tests)}...")
-
-                    inp, out = gen_test_input_output(gen_path, sol_path, test_toml)
-    
+                    
                     test_no = group_test_count[test_toml["group"]]
                     group_test_count[test_toml["group"]] += 1
-
-                    i_fname, o_fname = gen_test_in_out_fnames(test_toml, test_no)
                     
+                    i_fname, o_fname = gen_test_in_out_fnames(self.task_dir, test_toml, test_no)
+                    if "gen_params" in test_toml:
+                        self.output.emit(f"Exporting test {i_fname} with gen_params {test_toml['gen_params']}...")
+                    else:
+                        self.output.emit(f"Exporting test {i_fname}...")
+
+                    inp = get_test_input(test_toml, gen_path)
+                    out = run_cpp_file(sol_path, inp)
+    
                     myzip.writestr(i_fname, inp)
                     myzip.writestr(o_fname, out)
 
@@ -48,15 +52,12 @@ class TestPreparationExportWorker(QObject):
             self.output.emit("Exported tests to zip.")
         except Exception as e:
             self.output.emit(f"Error: {str(e)}")
+            print(e)
+            raise e
         finally:
             self.finished.emit()
             self.progress.emit(0)
 
-def gen_test_input_output(gen_path, sol_path, toml_test):
-    input_str = get_test_input(toml_test, gen_path)
-    output_str = run_cpp_file(sol_path, input_str)
-    return input_str, output_str
-    
 def get_test_input(toml_test, gen_path):
     if "gen_params" in toml_test:
         gen_params = toml_test["gen_params"]
@@ -67,7 +68,8 @@ def get_test_input(toml_test, gen_path):
         with open(in_from_path, "r") as f:
             return f.read()
 
-def gen_test_in_out_fnames(toml_test, no):
+def gen_test_in_out_fnames(task_dir, toml_test, no):
     group = toml_test["group"]
-    return f"dzirinas.i{str(group).zfill(2)}{chr(no + ord('a'))}",\
-        f"dzirinas.o{str(group).zfill(2)}{chr(no + ord('a'))}"
+    dir_name = os.path.basename(task_dir)
+    return f"{dir_name}.i{str(group).zfill(2)}{chr(no + ord('a'))}",\
+        f"{dir_name}.o{str(group).zfill(2)}{chr(no + ord('a'))}"

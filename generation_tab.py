@@ -7,6 +7,7 @@ from text_file_tab import TextFileTab
 from export_worker import TestPreparationExportWorker
 from PySide6.QtCore import QThread
 from PySide6.QtWidgets import QProgressBar
+from progress_dialog import ProgressDialog
 
 class GenerationTab(QWidget):
     def __init__(self):
@@ -16,7 +17,6 @@ class GenerationTab(QWidget):
 
         self.main_layout = QVBoxLayout()
 
-        self.progress_bar = QProgressBar()
         
         self.add_buttons_layout()
         self.add_tabs()
@@ -93,12 +93,17 @@ class GenerationTab(QWidget):
         self.worker = TestPreparationExportWorker(self.task_directory)
         self.worker.moveToThread(self.thread)
 
-        self.worker.output.connect(self.update_result_text)
+        self.progressDialog = ProgressDialog(self)
+        self.progressDialog.show()
+        
+        self.worker.output.connect(self.progressDialog.add_log)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
-        self.worker.progress.connect(self.progress_bar.setValue)
+        self.worker.progress.connect(self.progressDialog.update_progress)
         self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.progressDialog.accept)  # Close the dialog when done
 
+        
         self.thread.started.connect(self.worker.export_to_zip)
         self.thread.start()
     

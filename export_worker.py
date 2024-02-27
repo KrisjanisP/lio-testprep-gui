@@ -12,49 +12,50 @@ class TestPreparationExportWorker(QObject):
     output = Signal(str)
     progress = Signal(int)  # Signal to emit progress updates
 
-    def __init__(self, toml_path, zip_path):
+    def __init__(self, task_dir):
         super().__init__()
-        self.toml_path = toml_path
-        self.zip_path = zip_path
+        self.task_dir = task_dir
 
     def export_to_zip(self):
-        toml_path = self.toml_path
-        zip_path = self.zip_path
-
+        toml_path = os.path.join(self.task_dir, "riki", "task.toml")
+        zip_path = os.path.join(self.task_dir, "testi", "tests.zip")
+        gen_path = os.path.join(self.task_dir, "riki", "gen.cpp")
+        sol_path = os.path.join(self.task_dir, "riki", "sol.cpp")
+    
         self.output.emit("Exporting tests to zip...")
         try:
             parsed_toml = tomllib.load(open(toml_path, "rb").read())
-            tests_in_groups = defaultdict(int)
+            group_test_count = defaultdict(int)
 
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as myzip:
                 tests = parsed_toml["tests"]
-                for i, test in enumerate(tests):
+                for i, test_toml in enumerate(tests):
                     print(f"Exporting test {i + 1} of {len(tests)}...")
-                    toml_dir_path = os.path.dirname(toml_path)
+
+                    inp, out = gen_test_input_output(gen_path, sol_path, test_toml)
+    
+                    test_no = group_test_count[test_toml["group"]]
+                    group_test_count[test_toml["group"]] += 1
+
+                    i_fname, o_fname = gen_test_in_out_fnames(test_toml, test_no)
                     
-                    gen_path = os.path.join(toml_dir_path, "gen.cpp")
-                    input_str = get_test_input(toml_dir_path, gen_path, test)
+                    myzip.writestr(i_fname, inp)
+                    myzip.writestr(o_fname, out)
 
-                    sol_path = os.path.join(toml_dir_path, "sol.cpp")
-                    output_str = run_cpp_file(sol_path, input_str)
-                    test_in_group = tests_in_groups[test["group"]]
-                    tests_in_groups[test["group"]] += 1
+                    self.progress.emit((i + 1) / len(tests) * 100)
 
-                    # Define file names for input and output files
-                    input_filename = f"dzirinas.i{str(test['group']).zfill(2)}{chr(test_in_group + ord('a'))}"
-                    output_filename = f"dzirinas.o{str(test['group']).zfill(2)}{chr(test_in_group + ord('a'))}"
-
-                    # Write input and output strings directly to the ZIP archive
-                    myzip.writestr(input_filename, input_str)
-                    myzip.writestr(output_filename, output_str)
-                    self.progress.emit((i + 1) / len(tests) * 100)  # Update progress
             self.output.emit("Exported tests to zip.")
         except Exception as e:
             self.output.emit(f"Error: {str(e)}")
         finally:
             self.finished.emit()
-            self.progress.emit(0)  # Reset progres
+            self.progress.emit(0)
 
+def gen_test_input_output(gen_path, sol_path, toml_test):
+    input_str = get_test_input(toml_test, gen_path)
+    output_str = run_cpp_file(sol_path, input_str)
+    return input_str, output_str
+    
 def get_test_input(toml_test, gen_path):
     if "gen_params" in toml_test:
         gen_params = toml_test["gen_params"]
@@ -64,3 +65,8 @@ def get_test_input(toml_test, gen_path):
         in_from_path = os.path.join(data_dir, toml_test["in_from"])
         with open(in_from_path, "r") as f:
             return f.read()
+
+def gen_test_in_out_fnames(toml_test, no):
+    group = toml_test["group"]
+    return f"dzirinas.i{str(group).zfill(2)}{chr(no + ord('a'))}",\
+        f"dzirinas.o{str(group).zfill(2)}{chr(no + ord('a'))}"

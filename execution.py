@@ -16,4 +16,11 @@ def ensure_compiled_cpp(sol_src_path)->str:
     if not os.path.exists(exe_path):
         subprocess.run(["g++", sol_src_path, "-o", exe_path])
     return exe_path
-    
+
+def run_cpp_file(cpp_path, input_str, params=[]):
+    """Compiles, runs and returns the stdout of a c++ file."""
+    exe_path = ensure_compiled_cpp(cpp_path)
+    params_str = " ".join(map(str, params))
+    cmd = f"bash -c '{exe_path} {params_str}'"
+    output = subprocess.check_output(cmd, input=input_str, shell=True, text=True)
+    return output

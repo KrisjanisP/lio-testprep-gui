@@ -1,5 +1,6 @@
 import os
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTabWidget, QHBoxLayout, QSpacerItem, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTabWidget, QHBoxLayout, QSpacerItem, QSizePolicy,\
+    QCheckBox
 from tests_toml_tab import TestsTomlTab
 from tests_zip_tab import TestsZipTab
 from text_file_tab import TextFileTab
@@ -22,14 +23,22 @@ class GenerationTab(QWidget):
 
         button_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
+        self.subtask_checkboxes = []
+        for i in range(1, 6):
+            checkbox = QCheckBox(str(i))
+            checkbox.setChecked(True)
+            button_layout.addWidget(checkbox)
+            self.subtask_checkboxes.append(checkbox)
+
         self.gen_params_btn = QPushButton("Gen params")
+        self.gen_params_btn.clicked.connect(self.gen_params_clicked)
         button_layout.addWidget(self.gen_params_btn)
 
         self.gen_tests_btn = QPushButton("Gen tests")
         button_layout.addWidget(self.gen_tests_btn)
 
         self.main_layout.addLayout(button_layout)
-    
+
     def add_tabs(self):
         self.tabs = QTabWidget()
 
@@ -64,6 +73,12 @@ class GenerationTab(QWidget):
 
         self.testsZipTab.update_task_dir(dir_path)
         self.testsZipTab.load_tests_zip()
+    
+    def gen_params_clicked(self):
+        print("Subtasks selected:")
+        for i, checkbox in enumerate(self.subtask_checkboxes):
+            if checkbox.isChecked():
+                print(i+1)
 
 def get_params_py_path(task_dir):
     return os.path.join(task_dir, "riki", "params.py")

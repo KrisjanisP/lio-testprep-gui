@@ -28,7 +28,6 @@ class MainWindow(QMainWindow):
         self.solutionsTab = SolutionsTab()
         self.tabs.addTab(self.solutionsTab, "solutions")
 
-
         self.task_dir = statefulness.load_last_task_dir()
         if self.task_dir:
             self.update_task_dir(self.task_dir)

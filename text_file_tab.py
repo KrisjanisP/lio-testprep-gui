@@ -1,6 +1,10 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit
 from PySide6.QtGui import QFont
 from reload_label import ReloadLabelRow
+from pygments.lexers import guess_lexer_for_filename
+from pygments.formatters import HtmlFormatter
+import os
+from pygments import highlight
 
 class TextFileTab(QWidget):
     def __init__(self):
@@ -26,9 +30,14 @@ class TextFileTab(QWidget):
     def display_text_file(self, file_path):
         try:
             with open(file_path, "r") as file:
-                self.content.setText(file.read())
+                filename = os.path.basename(file_path)
+                file_content = file.read()
+                lexer = guess_lexer_for_filename(filename, file_content)
+                formatted = highlight(file_content, lexer, HtmlFormatter(style='sas', noclasses=True))
+                open("test.html", "w").write(formatted)
+                self.content.setHtml(formatted)
                 self.reloadLabelRow.update_reload_label()
         except FileNotFoundError:
-            self.content.setText(f"File not found at {file_path}.")
+            self.content.setText(f"{os.path.basename(file_path)} not found at {file_path}.")
         except Exception as e:
             self.content.setText(str(e))

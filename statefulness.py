@@ -15,7 +15,11 @@ def load_config() -> dict:
     if os.path.exists(config_path):
         with open(config_path) as f:
             return json.load(f)
-    raise FileNotFoundError(f"Config file not found at {config_path}")
+    else:
+        # create a new config file
+        config = {}
+        save_config(config)
+        return config
 
 def save_config(config: dict):
     config_path = get_config_path()

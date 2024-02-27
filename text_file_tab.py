@@ -20,7 +20,7 @@ class TextFileTab(QWidget):
     def add_content_widget(self):
         self.content = QTextEdit()
         self.content.setReadOnly(True)
-        self.content.setFont(QFont("Courier New", 12))
+        self.content.setFont(QFont("Courier New", 10))
         self.main_layout.addWidget(self.content)
 
     def add_reload_label(self):

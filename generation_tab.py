@@ -36,11 +36,14 @@ class GenerationTab(QWidget):
         self.paramsPyTab = TextFileTab()
         self.tabs.addTab(self.paramsPyTab, "params.py")
 
-        self.testlibGenTab = TextFileTab()
-        self.tabs.addTab(self.testlibGenTab, "generator.cpp")
-
         self.testsTomlTab = TestsTomlTab()
         self.tabs.addTab(self.testsTomlTab, "tests.toml")
+
+        self.testlibGenTab = TextFileTab()
+        self.tabs.addTab(self.testlibGenTab, "gen.cpp")
+
+        self.solTab = TextFileTab()
+        self.tabs.addTab(self.solTab, "sol.cpp")
 
         self.testsZipTab = TestsZipTab()
         self.tabs.addTab(self.testsZipTab, "tests.zip")
@@ -48,8 +51,14 @@ class GenerationTab(QWidget):
         self.main_layout.addWidget(self.tabs)
 
     def update_task_dir(self, dir_path):
-        self.paramsPyTab.display_text_file(get_params_py_path(dir_path))
-        self.testlibGenTab.display_text_file(get_generator_cpp_path(dir_path))
+        params_py_path = get_params_py_path(dir_path)
+        self.paramsPyTab.display_text_file(params_py_path)
+
+        gen_cpp_path = get_generator_cpp_path(dir_path)
+        self.testlibGenTab.display_text_file(gen_cpp_path)
+
+        sol_cpp_path = get_sol_cpp_path(dir_path)
+        self.solTab.display_text_file(sol_cpp_path)
 
         self.testsTomlTab.load_tests_toml(dir_path)
 
@@ -60,7 +69,10 @@ def get_params_py_path(task_dir):
     return os.path.join(task_dir, "riki", "params.py")
 
 def get_generator_cpp_path(task_dir):
-    return os.path.join(task_dir, "riki", "generator.cpp")
+    return os.path.join(task_dir, "riki", "gen.cpp")
+
+def get_sol_cpp_path(task_dir):
+    return os.path.join(task_dir, "riki", "sol.cpp")
 
 def generate_params(task_dir):
     pass

@@ -4,6 +4,9 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTabWidget, QHB
 from tests_toml_tab import TestsTomlTab
 from tests_zip_tab import TestsZipTab
 from text_file_tab import TextFileTab
+from export_worker import TestPreparationExportWorker
+from PySide6.QtCore import QThread
+from PySide6.QtWidgets import QProgressBar
 
 class GenerationTab(QWidget):
     def __init__(self):
@@ -13,6 +16,8 @@ class GenerationTab(QWidget):
 
         self.main_layout = QVBoxLayout()
 
+        self.progress_bar = QProgressBar()
+        
         self.add_buttons_layout()
         self.add_tabs()
 
@@ -34,7 +39,8 @@ class GenerationTab(QWidget):
         self.gen_params_btn.clicked.connect(self.gen_params_clicked)
         button_layout.addWidget(self.gen_params_btn)
 
-        self.gen_tests_btn = QPushButton("Gen tests")
+        self.gen_tests_btn = QPushButton("Export tests")
+        self.gen_tests_btn.clicked.connect(self.export_tests_clicked)
         button_layout.addWidget(self.gen_tests_btn)
 
         self.main_layout.addLayout(button_layout)
@@ -60,6 +66,8 @@ class GenerationTab(QWidget):
         self.main_layout.addWidget(self.tabs)
 
     def update_task_dir(self, dir_path):
+        self.task_directory = dir_path
+        
         params_py_path = get_params_py_path(dir_path)
         self.paramsPyTab.display_text_file(params_py_path)
 
@@ -79,6 +87,23 @@ class GenerationTab(QWidget):
         for i, checkbox in enumerate(self.subtask_checkboxes):
             if checkbox.isChecked():
                 print(i+1)
+    
+    def export_tests_clicked(self):
+        self.thread = QThread()
+        self.worker = TestPreparationExportWorker(self.task_directory)
+        self.worker.moveToThread(self.thread)
+
+        self.worker.output.connect(self.update_result_text)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.progress.connect(self.progress_bar.setValue)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        self.thread.started.connect(self.worker.export_to_zip)
+        self.thread.start()
+    
+    def update_result_text(self, text):
+        print(text) # we will move to log area later on
 
 def get_params_py_path(task_dir):
     return os.path.join(task_dir, "riki", "params.py")

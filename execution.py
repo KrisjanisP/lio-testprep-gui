@@ -13,6 +13,8 @@ def ensure_compiled_cpp(sol_src_path)->str:
         sol_src = f.read()
     sha256 = hashlib.sha256(sol_src).hexdigest()
     exe_path = os.path.join(tempfile.gettempdir(), 'testprep', sha256)
+    if not os.path.exists(os.path.dirname(exe_path)):
+        os.makedirs(os.path.dirname(exe_path))
     if not os.path.exists(exe_path):
         subprocess.run(["g++", sol_src_path, "-o", exe_path])
     return exe_path

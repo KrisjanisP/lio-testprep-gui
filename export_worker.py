@@ -17,14 +17,15 @@ class TestPreparationExportWorker(QObject):
         self.task_dir = task_dir
 
     def export_to_zip(self):
-        toml_path = os.path.join(self.task_dir, "riki", "task.toml")
+        toml_path = os.path.join(self.task_dir, "riki", "data", "tests.toml")
         zip_path = os.path.join(self.task_dir, "testi", "tests.zip")
         gen_path = os.path.join(self.task_dir, "riki", "gen.cpp")
         sol_path = os.path.join(self.task_dir, "riki", "sol.cpp")
     
         self.output.emit("Exporting tests to zip...")
         try:
-            parsed_toml = tomllib.load(open(toml_path, "rb").read())
+            with open(toml_path, "r") as f:
+                parsed_toml = tomllib.loads(f.read())
             group_test_count = defaultdict(int)
 
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as myzip:

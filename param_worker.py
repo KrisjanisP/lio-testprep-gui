@@ -1,9 +1,10 @@
 from PySide6.QtCore import QObject, Signal
 import tomllib
 import os
-import tempfile
 import toml
-import subprocess
+import yaml
+import json
+from execution import run_python_file
 
 
 class TestPreparationConfigurationWorker(QObject):
@@ -18,25 +19,31 @@ class TestPreparationConfigurationWorker(QObject):
 
     def configure_st_tests(self, st_list=[]):
         toml_path = os.path.join(self.task_dir, "riki", "data", "tests.toml")
+        yaml_path = os.path.join(self.task_dir, "task.yaml")
         params_py_path = os.path.join(self.task_dir, "riki", "params.py")
+        print(f"Configuring tests for subtasks {st_list}...")
 
         tests_per_group = 3
 
         try:
             for st_no in st_list:
+                print(f"Configuring subtask {st_no} tests...")
                 self.output.emit(f"Configuring subtask {st_no} tests...")
 
                 with open(toml_path, "rb") as f:
                     parsed_toml = tomllib.load(f)
-
-                st_groups = find_st_groups(parsed_toml, st_no)
+                
+                with open(yaml_path, "rb") as f:
+                    parsed_yaml = yaml.load(f, Loader=yaml.FullLoader)
+                    
+                st_groups = find_st_groups(parsed_yaml, st_no)
 
                 new_tests = []
                 for (group_i, group) in enumerate(st_groups):
                     self.output.emit(f"Generating tests for group {st_groups[group_i]}...")
 
                     for i in range(tests_per_group):
-                        params = run_python_file(params_py_path, str(st_no), str(group))
+                        params = json.loads(run_python_file(params_py_path, str(st_no), str(group)))
 
                         new_tests.append({
                             "group": group,
@@ -62,19 +69,15 @@ class TestPreparationConfigurationWorker(QObject):
                 self.output.emit(f"Configured subtask {st_no} tests.")
         except Exception as e:
             self.output.emit(f"Error: {str(e)}")
+            print(e)
+            print(f"Error: {str(e)}")
         finally:
             self.finished.emit()
             self.progress.emit(0)  # Reset progres
 
-def run_python_file(python_path, *args):
-    with tempfile.TemporaryFile() as f:
-        f.write(" ".join(args).encode('utf-8'))
-        f.seek(0)
-        return subprocess.run(["python3", python_path], stdin=f, stdout=subprocess.PIPE).stdout.decode('utf-8')
-
-def find_st_groups(parsed_toml, st_no):
+def find_st_groups(parsed_yaml, st_no):
     st_groups = []
-    for group in parsed_toml["tests_groups"]:
+    for group in parsed_yaml["tests_groups"]:
         if group["subtask"] == st_no:
             a, b = group["groups"]
             for i in range(a,b+1):

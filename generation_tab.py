@@ -6,8 +6,8 @@ from tests_zip_tab import TestsZipTab
 from text_file_tab import TextFileTab
 from export_worker import TestPreparationExportWorker
 from PySide6.QtCore import QThread
-from PySide6.QtWidgets import QProgressBar
 from progress_dialog import ProgressDialog
+from param_worker import TestPreparationConfigurationWorker
 
 class GenerationTab(QWidget):
     def __init__(self):
@@ -31,7 +31,7 @@ class GenerationTab(QWidget):
         self.subtask_checkboxes = []
         for i in range(1, 6):
             checkbox = QCheckBox(str(i))
-            checkbox.setChecked(True)
+            if i!=1: checkbox.setChecked(True)
             button_layout.addWidget(checkbox)
             self.subtask_checkboxes.append(checkbox)
 
@@ -83,17 +83,36 @@ class GenerationTab(QWidget):
         self.testsZipTab.load_tests_zip()
     
     def gen_params_clicked(self):
-        print("Subtasks selected:")
+        selected_subtasks = []
         for i, checkbox in enumerate(self.subtask_checkboxes):
             if checkbox.isChecked():
-                print(i+1)
+                selected_subtasks.append(i + 1)
+        print("Selected subtasks:", selected_subtasks)
+        self.thread = QThread()
+        self.worker = TestPreparationConfigurationWorker(self.task_directory)
+        self.worker.moveToThread(self.thread)
+
+        self.progressDialog = ProgressDialog("Generating params", self)
+        self.progressDialog.show()
+        
+        self.worker.output.connect(self.progressDialog.add_log)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.progress.connect(self.progressDialog.update_progress)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.finished.connect(self.progressDialog.accept)  # Close the dialog when done
+
+        
+        self.thread.started.connect(lambda:self.worker.configure_st_tests(selected_subtasks))
+        self.thread.start()
+        
     
     def export_tests_clicked(self):
         self.thread = QThread()
         self.worker = TestPreparationExportWorker(self.task_directory)
         self.worker.moveToThread(self.thread)
 
-        self.progressDialog = ProgressDialog(self)
+        self.progressDialog = ProgressDialog("Exporting tests", self)
         self.progressDialog.show()
         
         self.worker.output.connect(self.progressDialog.add_log)

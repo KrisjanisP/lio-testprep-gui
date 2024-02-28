@@ -26,3 +26,9 @@ def run_cpp_file(cpp_path, input_str, params=[]):
     cmd = f"bash -c '{exe_path} {params_str}'"
     output = subprocess.check_output(cmd, input=input_str, shell=True, text=True)
     return output
+
+def run_python_file(python_path, *args):
+    """Runs a python file and returns its stdout."""
+    cmd = f"python3 {python_path} {' '.join(args)}"
+    output = subprocess.check_output(cmd, shell=True, text=True)
+    return output

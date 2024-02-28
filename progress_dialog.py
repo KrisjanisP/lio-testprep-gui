@@ -1,9 +1,9 @@
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QProgressBar, QTextEdit
 
 class ProgressDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, title, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Export Progress and Logs")
+        self.setWindowTitle(title)
         layout = QVBoxLayout()
         self.setLayout(layout)
 

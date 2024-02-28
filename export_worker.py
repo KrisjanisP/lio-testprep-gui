@@ -4,8 +4,6 @@ import zipfile
 from PySide6.QtCore import QObject, Signal
 import tomllib
 from execution import run_cpp_file
-import subprocess
-import tempfile
 
 class TestPreparationExportWorker(QObject):
     finished = Signal()

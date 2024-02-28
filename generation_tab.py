@@ -67,7 +67,11 @@ class GenerationTab(QWidget):
 
     def update_task_dir(self, dir_path):
         self.task_directory = dir_path
-        
+        self.reload_files()
+    
+    def reload_files(self):
+        dir_path = self.task_directory
+         
         params_py_path = get_params_py_path(dir_path)
         self.paramsPyTab.display_text_file(params_py_path)
 
@@ -81,7 +85,7 @@ class GenerationTab(QWidget):
 
         self.testsZipTab.update_task_dir(dir_path)
         self.testsZipTab.load_tests_zip()
-    
+        
     def gen_params_clicked(self):
         selected_subtasks = []
         for i, checkbox in enumerate(self.subtask_checkboxes):
@@ -101,8 +105,8 @@ class GenerationTab(QWidget):
         self.worker.progress.connect(self.progressDialog.update_progress)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.finished.connect(self.progressDialog.accept)  # Close the dialog when done
+        self.thread.finished.connect(self.reload_files)
 
-        
         self.thread.started.connect(lambda:self.worker.configure_st_tests(selected_subtasks))
         self.thread.start()
         
@@ -121,6 +125,7 @@ class GenerationTab(QWidget):
         self.worker.progress.connect(self.progressDialog.update_progress)
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.finished.connect(self.progressDialog.accept)  # Close the dialog when done
+        self.thread.finished.connect(self.reload_files)
 
         
         self.thread.started.connect(self.worker.export_to_zip)
@@ -128,6 +133,7 @@ class GenerationTab(QWidget):
     
     def update_result_text(self, text):
         print(text) # we will move to log area later on
+
 
 def get_params_py_path(task_dir):
     return os.path.join(task_dir, "riki", "params.py")

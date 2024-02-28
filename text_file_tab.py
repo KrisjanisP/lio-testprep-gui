@@ -34,7 +34,6 @@ class TextFileTab(QWidget):
                 file_content = file.read()
                 lexer = guess_lexer_for_filename(filename, file_content)
                 formatted = highlight(file_content, lexer, HtmlFormatter(style='sas', noclasses=True))
-                open("test.html", "w").write(formatted)
                 self.content.setHtml(formatted)
                 self.reloadLabelRow.update_reload_label()
         except FileNotFoundError:
